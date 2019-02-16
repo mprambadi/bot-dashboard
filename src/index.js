@@ -2,7 +2,7 @@ import "bootstrap/dist/css/bootstrap.min.css"
 import App from './App';
 import * as serviceWorker from './serviceWorker';
 import { AppRegistry } from 'react-native';
-
+import 'react-virtualized/styles.css'
 
 AppRegistry.registerComponent('App', () => App);
 

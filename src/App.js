@@ -1,23 +1,26 @@
 import React, { Component } from "react";
 import "./App.css";
 import ccxt from "ccxt";
-import {
-	FlatList,
-	View,
-	Text,
-	Picker,
-	TouchableOpacity,
-	TextInput
-} from "react-native";
+import { FlatList, View, Text, Picker, TextInput } from "react-native";
 import { pivotFib } from "./utils/Indicator";
-import * as _ from "lodash";
+import { List, AutoSizer } from "react-virtualized";
+import plimit from "p-limit";
+import Axios from "axios";
 
+const limit = plimit(3);
 const binance = new ccxt.binance({
 	proxy: "https://cors-anywhere.herokuapp.com/"
 });
 
+const api = Axios.create({
+	baseURL: "http://telegrafme.herokuapp.com/indicator/"
+});
+
+const service = {
+	fetchOhlcv: () => api.get("/binance")
+};
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
-class App extends Component {
+class App extends React.PureComponent {
 	constructor() {
 		super();
 		this.socket = new WebSocket(
@@ -31,41 +34,48 @@ class App extends Component {
 		search: ""
 	};
 	componentDidMount() {
-		this.fetchMarkets();
+		this.fetchLocalData();
+		this.fetchAllTickers();
 	}
 
-	fetchMarkets = async () => {
-		const tickers = await binance.fetchTickers();
+	fetchLocalData = () => {
+		this.localData = JSON.parse(localStorage.getItem("ohlcvData"));
+	};
 
-		const data = Object.values(tickers);
-		const btc = data.filter(
-			item => item.symbol.split("/")[1] === this.state.base
-		);
+	fetchAllTickers = async () => {
+		// const tickers = await binance.fetchTickers();
 
-		console.log(btc);
+		// const data = Object.values(tickers);
+    const { data } = await service.fetchOhlcv();
+    
 
-		const addExtraData = btc.map(item => ({
+		const addExtraData = data.map(item => ({
 			...item,
-			ohlcv: [],
-			id: item.symbol.split("/").join(""),
+			id: item.symbol,
 			bg: "white"
 		}));
+
+		console.log(addExtraData);
+
+		this.fetchLocalData();
+
 		this.setState({ market: addExtraData }, () => {
-			this.fetchOhlcv();
+			this.getSocket();
 		});
 	};
 
 	fetchOhlcv = async () => {
 		try {
-			for (const market of this.state.market) {
-				const ohlcv = await binance.fetchOHLCV(market.symbol, "1w");
-				this.setState(state => ({
-					market: state.market.map(item =>
-						item.id === market.id ? { ...item, ohlcv } : { ...item }
-					)
-				}));
-				sleep(binance.rateLimit);
-			}
+			const { data } = await service.fetchOhlcv();
+
+			console.log(data);
+			// data.map(market => {
+			// 	this.setState(state => ({
+			// 		market: state.market.map(item =>
+			// 			item.id === market.symbol ? { ...item, ohlcv:market.data, data:market.ohlcv } : { ...item }
+			// 		)
+			//   }));
+			// })
 
 			this.getSocket();
 		} catch (error) {
@@ -94,8 +104,63 @@ class App extends Component {
 		};
 	}
 
+	renderIndicator = ({ index, key, style }) => {
+		const filterBase = this.state.market.filter(
+			item => item.base === this.state.base
+		);
+
+		const filteredData = filterBase.filter(
+			item => item.id.indexOf(this.state.search.toUpperCase()) !== -1
+		);
+		return (
+			<View
+				style={[
+					{
+						flexDirection: "row",
+						justifyContent: "space-between",
+						flex: 1
+					},
+					style
+				]}
+				key={key}
+			>
+				<TextCenter
+					text={filteredData[index].symbol && filteredData[index].symbol}
+				/>
+				{
+					<TextCenter
+						text={Number(
+							!!filteredData[index].ticker && filteredData[index].ticker.last
+						).toFixed(8)}
+						backgroundColor={filteredData[index].bg}
+						bold
+					/>
+				}
+				{
+					<TextCenter
+						text={Number(
+							!!filteredData[index].ticker &&
+								filteredData[index].ticker.percentage
+						).toFixed(2)}
+						percentage
+					/>
+				}
+				{<TextCenter text={filteredData[index].data.r3} />}
+				{<TextCenter text={filteredData[index].data.r2} />}
+				{<TextCenter text={filteredData[index].data.r1} />}
+				{<TextCenter text={filteredData[index].data.p} />}
+				{<TextCenter text={filteredData[index].data.s1} />}
+				{<TextCenter text={filteredData[index].data.s2} />}
+				{<TextCenter text={filteredData[index].data.s3} />}
+			</View>
+		);
+	};
 	render() {
-		const filteredData = this.state.market.filter(
+		const filterBase = this.state.market.filter(
+			item => item.base === this.state.base
+		);
+
+		const filteredData = filterBase.filter(
 			item => item.id.indexOf(this.state.search.toUpperCase()) !== -1
 		);
 
@@ -123,9 +188,7 @@ class App extends Component {
 							width: 100
 						}}
 						onValueChange={(itemValue, itemIndex) =>
-							this.setState({ base: itemValue, market: [] }, () => {
-								this.fetchMarkets();
-							})
+							this.setState({ base: itemValue })
 						}
 					>
 						<Picker.Item label="BTC" value="BTC" />
@@ -154,21 +217,19 @@ class App extends Component {
 					/>
 				</View>
 				<HeaderIndicator />
-				<FlatList
-					refreshing={this.state.market.length < 5}
-					data={filteredData}
-					keyExtractor={(item, index) => item + index}
-					renderItem={({ item }) => <Indicator item={item} />}
-					extraData={filteredData}
-					showsHorizontalScrollIndicator={false}
-					style={{ padding: 10, marginTop: 80 }}
-					ItemSeparatorComponent={() => (
-						<View
-							style={{ borderBottomColor: "black", borderBottomWidth: 1 }}
+{/* 
+				<AutoSizer>
+					{({ width, height }) => ( */}
+						<List
+							style={{ marginTop: 80 }}
+							rowCount={filteredData.length}
+							rowRenderer={this.renderIndicator}
+							width={window.innerWidth-20}
+							height={window.innerHeight-80}
+							rowHeight={50}
 						/>
-					)}
-					stickyHeaderIndices={[0]}
-				/>
+				{/* // 	)}
+				// </AutoSizer> */}
 			</View>
 		);
 	}
@@ -216,28 +277,4 @@ const TextCenter = ({ text, percentage, bold, backgroundColor }) => (
 		</Text>
 	</View>
 );
-
-const Indicator = ({ item }) => (
-	<View
-		style={{ flexDirection: "row", justifyContent: "space-between", flex: 1 }}
-	>
-		<TextCenter text={item.symbol} />
-		{
-			<TextCenter
-				text={Number(item.last).toFixed(8)}
-				backgroundColor={item.bg}
-				bold
-			/>
-		}
-		{<TextCenter text={Number(item.percentage).toFixed(2)} percentage />}
-		{!!item.ohlcv.length && <TextCenter text={pivotFib(item.ohlcv).r3} />}
-		{!!item.ohlcv.length && <TextCenter text={pivotFib(item.ohlcv).r2} />}
-		{!!item.ohlcv.length && <TextCenter text={pivotFib(item.ohlcv).r1} />}
-		{!!item.ohlcv.length && <TextCenter text={pivotFib(item.ohlcv).p} />}
-		{!!item.ohlcv.length && <TextCenter text={pivotFib(item.ohlcv).s1} />}
-		{!!item.ohlcv.length && <TextCenter text={pivotFib(item.ohlcv).s2} />}
-		{!!item.ohlcv.length && <TextCenter text={pivotFib(item.ohlcv).s3} />}
-	</View>
-);
-
 export default App;
