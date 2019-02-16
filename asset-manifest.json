@@ -1,7 +1,7 @@
 {
   "main.css": "/bot-dashboard/static/css/main.a7994d96.chunk.css",
-  "main.js": "/bot-dashboard/static/js/main.5c446e55.chunk.js",
-  "main.js.map": "/bot-dashboard/static/js/main.5c446e55.chunk.js.map",
+  "main.js": "/bot-dashboard/static/js/main.f76e4f1c.chunk.js",
+  "main.js.map": "/bot-dashboard/static/js/main.f76e4f1c.chunk.js.map",
   "static/css/1.3f4650ae.chunk.css": "/bot-dashboard/static/css/1.3f4650ae.chunk.css",
   "static/js/1.58ff19a7.chunk.js": "/bot-dashboard/static/js/1.58ff19a7.chunk.js",
   "static/js/1.58ff19a7.chunk.js.map": "/bot-dashboard/static/js/1.58ff19a7.chunk.js.map",
@@ -10,6 +10,6 @@
   "static/css/1.3f4650ae.chunk.css.map": "/bot-dashboard/static/css/1.3f4650ae.chunk.css.map",
   "static/css/main.a7994d96.chunk.css.map": "/bot-dashboard/static/css/main.a7994d96.chunk.css.map",
   "index.html": "/bot-dashboard/index.html",
-  "precache-manifest.cedec74ea3a172e036e22d1ef76c8133.js": "/bot-dashboard/precache-manifest.cedec74ea3a172e036e22d1ef76c8133.js",
+  "precache-manifest.feccff847cc7687bcadc67e748686e61.js": "/bot-dashboard/precache-manifest.feccff847cc7687bcadc67e748686e61.js",
   "service-worker.js": "/bot-dashboard/service-worker.js"
 }
