@@ -13,7 +13,7 @@ const binance = new ccxt.binance({
 });
 
 const api = Axios.create({
-	baseURL: "http://telegrafme.herokuapp.com/indicator/"
+	baseURL: "https://telegrafme.herokuapp.com/indicator/"
 });
 
 const service = {
