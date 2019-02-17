@@ -39,7 +39,9 @@ class App extends React.PureComponent {
 		const addExtraData = data.map(item => ({
 			...item,
 			bg: "white"
-		}));
+    }));
+    
+    console.log(addExtraData)
 
 		this.setState({ market: addExtraData }, () => {
 			this.getSocket();
