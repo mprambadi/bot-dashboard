@@ -12,7 +12,6 @@ const api = Axios.create({
 const service = {
 	fetchOhlcv: () => api.get("/binance")
 };
-const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 class App extends React.PureComponent {
 	constructor() {
 		super();
@@ -152,9 +151,9 @@ class App extends React.PureComponent {
 				<TextCenter text={fixedNumberBy(r2.price, precision.price)} />
 				<TextCenter text={fixedNumberBy(r1.price, precision.price)} />
 				<TextCenter text={fixedNumberBy(p.price, precision.price)} />
-				<TextCenter text={fixedNumberBy(s3.price, precision.price)} />
-				<TextCenter text={fixedNumberBy(s2.price, precision.price)} />
 				<TextCenter text={fixedNumberBy(s1.price, precision.price)} />
+				<TextCenter text={fixedNumberBy(s2.price, precision.price)} />
+				<TextCenter text={fixedNumberBy(s3.price, precision.price)} />
 			</View>
 		);
 	};
