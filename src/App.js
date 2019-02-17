@@ -40,9 +40,6 @@ class App extends React.PureComponent {
 			...item,
 			bg: "white"
     }));
-    
-    console.log(addExtraData)
-
 		this.setState({ market: addExtraData }, () => {
 			this.getSocket();
 		});
