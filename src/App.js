@@ -1,16 +1,9 @@
-import React, { Component } from "react";
+import React from "react";
 import "./App.css";
-import ccxt from "ccxt";
-import { FlatList, View, Text, Picker, TextInput } from "react-native";
-import { pivotFib } from "./utils/Indicator";
-import { List, AutoSizer } from "react-virtualized";
-import plimit from "p-limit";
+import {  View, Text, Picker, TextInput } from "react-native";
+import { List} from "react-virtualized";
 import Axios from "axios";
 
-const limit = plimit(3);
-const binance = new ccxt.binance({
-	proxy: "https://cors-anywhere.herokuapp.com/"
-});
 
 const api = Axios.create({
 	baseURL: "https://telegrafme.herokuapp.com/indicator/"
@@ -34,7 +27,6 @@ class App extends React.PureComponent {
 		search: ""
 	};
 	componentDidMount() {
-		this.fetchLocalData();
 		this.fetchAllTickers();
 	}
 
@@ -43,44 +35,15 @@ class App extends React.PureComponent {
 	};
 
 	fetchAllTickers = async () => {
-		// const tickers = await binance.fetchTickers();
-
-		// const data = Object.values(tickers);
-    const { data } = await service.fetchOhlcv();
-    
-
+		const { data } = await service.fetchOhlcv();
 		const addExtraData = data.map(item => ({
 			...item,
-			id: item.symbol,
 			bg: "white"
 		}));
-
-		console.log(addExtraData);
-
-		this.fetchLocalData();
 
 		this.setState({ market: addExtraData }, () => {
 			this.getSocket();
 		});
-	};
-
-	fetchOhlcv = async () => {
-		try {
-			const { data } = await service.fetchOhlcv();
-
-			console.log(data);
-			// data.map(market => {
-			// 	this.setState(state => ({
-			// 		market: state.market.map(item =>
-			// 			item.id === market.symbol ? { ...item, ohlcv:market.data, data:market.ohlcv } : { ...item }
-			// 		)
-			//   }));
-			// })
-
-			this.getSocket();
-		} catch (error) {
-			console.log(error);
-		}
 	};
 
 	getSocket() {
@@ -90,11 +53,26 @@ class App extends React.PureComponent {
 					const last = JSON.parse(data).find(ws => ws.s === item.id);
 					return {
 						...item,
-						last: last ? Number(last.c) : Number(item.last),
+						ticker: {
+							...item.ticker,
+							last: !!last ? Number(last.c) : Number(item.ticker.last),
+							percentage: !!last
+								? percentage({ lastPrice: last.c, openPrice: last.o })
+								: Number(item.ticker.percentage)
+						},
+						fib: {
+							...item.fib,
+							s1: {
+								...item.fib.s1,
+								percentage: !!last
+									? percentage({ lastPrice: last.c, openPrice: item.data.s1 })
+									: item.fib.s1.percentage
+							}
+						},
 						bg: last
-							? Number(last.c) > Number(item.last)
+							? Number(last.c) > Number(item.ticker && item.ticker.last)
 								? "#42f474"
-								: Number(last.c) < Number(item.last)
+								: Number(last.c) < Number(item.ticker && item.ticker.last)
 								? "#f44141"
 								: "white"
 							: item.bg
@@ -110,48 +88,74 @@ class App extends React.PureComponent {
 		);
 
 		const filteredData = filterBase.filter(
-			item => item.id.indexOf(this.state.search.toUpperCase()) !== -1
+			item =>
+				[item.id, item.fib.s1.toString()]
+					.join("")
+					.indexOf(this.state.search.toUpperCase()) !== -1
 		);
+
+		const {
+			id,
+			ticker,
+			rsi: { daily, fourly },
+			market: { precision },
+			bg,
+			fib: { s3, s2, s1, p, r3, r2, r1 }
+		} = filteredData[index];
+
 		return (
 			<View
 				style={[
 					{
 						flexDirection: "row",
 						justifyContent: "space-between",
-						flex: 1
+						flex: 1,
+						borderBottomColor: "black",
+						borderWidth: 1
 					},
 					style
 				]}
 				key={key}
 			>
-				<TextCenter
-					text={filteredData[index].symbol && filteredData[index].symbol}
-				/>
+				<TextCenter text={id} />
 				{
 					<TextCenter
-						text={Number(
-							!!filteredData[index].ticker && filteredData[index].ticker.last
-						).toFixed(8)}
-						backgroundColor={filteredData[index].bg}
+						text={fixedNumberBy(ticker.last, precision.price)}
+						backgroundColor={bg}
 						bold
 					/>
 				}
 				{
 					<TextCenter
-						text={Number(
-							!!filteredData[index].ticker &&
-								filteredData[index].ticker.percentage
-						).toFixed(2)}
+						text={Number(ticker.percentage).toFixed(2)}
 						percentage
+						backgroundColor={
+							ticker.percentage > 0
+								? "#42f474"
+								: ticker.percentage < 0
+								? "#f44141"
+								: "white"
+						}
 					/>
 				}
-				{<TextCenter text={filteredData[index].data.r3} />}
-				{<TextCenter text={filteredData[index].data.r2} />}
-				{<TextCenter text={filteredData[index].data.r1} />}
-				{<TextCenter text={filteredData[index].data.p} />}
-				{<TextCenter text={filteredData[index].data.s1} />}
-				{<TextCenter text={filteredData[index].data.s2} />}
-				{<TextCenter text={filteredData[index].data.s3} />}
+
+				<TextCenter
+					text={fixedNumberBy(fourly.lastRSI, 2)}
+					backgroundColor={fourly.lastRSI < 25 ? "#42f474" : "white"}
+				/>
+				<TextCenter
+					text={fixedNumberBy(daily.lastRSI, 2)}
+					backgroundColor={daily.lastRSI < 25 ? "#42f474" : "white"}
+				/>
+				<TextCenter text={s1.percentage} percentage />
+
+				<TextCenter text={fixedNumberBy(r3.price, precision.price)} />
+				<TextCenter text={fixedNumberBy(r2.price, precision.price)} />
+				<TextCenter text={fixedNumberBy(r1.price, precision.price)} />
+				<TextCenter text={fixedNumberBy(p.price, precision.price)} />
+				<TextCenter text={fixedNumberBy(s3.price, precision.price)} />
+				<TextCenter text={fixedNumberBy(s2.price, precision.price)} />
+				<TextCenter text={fixedNumberBy(s1.price, precision.price)} />
 			</View>
 		);
 	};
@@ -161,7 +165,10 @@ class App extends React.PureComponent {
 		);
 
 		const filteredData = filterBase.filter(
-			item => item.id.indexOf(this.state.search.toUpperCase()) !== -1
+			item =>
+				[item.id, item.fib.s1.toString()]
+					.join("")
+					.indexOf(this.state.search.toUpperCase()) !== -1
 		);
 
 		return (
@@ -187,9 +194,7 @@ class App extends React.PureComponent {
 							height: 30,
 							width: 100
 						}}
-						onValueChange={(itemValue, itemIndex) =>
-							this.setState({ base: itemValue })
-						}
+						onValueChange={itemValue => this.setState({ base: itemValue })}
 					>
 						<Picker.Item label="BTC" value="BTC" />
 						<Picker.Item label="USDT" value="USDT" />
@@ -217,19 +222,15 @@ class App extends React.PureComponent {
 					/>
 				</View>
 				<HeaderIndicator />
-{/* 
-				<AutoSizer>
-					{({ width, height }) => ( */}
-						<List
-							style={{ marginTop: 80 }}
-							rowCount={filteredData.length}
-							rowRenderer={this.renderIndicator}
-							width={window.innerWidth-20}
-							height={window.innerHeight-80}
-							rowHeight={50}
-						/>
-				{/* // 	)}
-				// </AutoSizer> */}
+
+				<List
+					style={{ marginTop: 80 }}
+					rowCount={filteredData.length}
+					rowRenderer={this.renderIndicator}
+					width={window.innerWidth - 5}
+					height={window.innerHeight - 80}
+					rowHeight={35}
+				/>
 			</View>
 		);
 	}
@@ -240,7 +241,7 @@ const HeaderIndicator = () => (
 		style={{
 			flexDirection: "row",
 			justifyContent: "space-between",
-			width: "100%",
+			width: "99%",
 			alignItems: "center",
 			position: "fixed",
 			top: 40,
@@ -253,6 +254,9 @@ const HeaderIndicator = () => (
 		<TextCenter bold text="Pair" />
 		<TextCenter bold text="Last Price" />
 		<TextCenter bold text="24h Chg%" />
+		<TextCenter bold text="RSI 4H" />
+		<TextCenter bold text="RSI 1D" />
+		<TextCenter bold text="S1%" />
 		<View style={{ width: "100%" }}>
 			<View style={{ alignContent: "center" }}>
 				<Text> Pivot Fibonnaci Weekly</Text>
@@ -271,10 +275,28 @@ const HeaderIndicator = () => (
 );
 
 const TextCenter = ({ text, percentage, bold, backgroundColor }) => (
-	<View style={{ width: "10%", alignItems: "center", backgroundColor }}>
+	<View
+		style={{
+			width: "7.7%",
+			alignItems: "center",
+			backgroundColor,
+			justifyContent: "center"
+		}}
+	>
 		<Text style={{ fontWeight: bold ? "bold" : "normal" }}>
 			{text} {percentage ? "%" : ""}
 		</Text>
 	</View>
 );
 export default App;
+
+const percentage = ({ lastPrice, openPrice }) => {
+	return (
+		((toNumber(lastPrice) - toNumber(openPrice)) / toNumber(openPrice)) *
+		100
+	).toFixed(2);
+};
+
+const fixedNumberBy = (number, precision) => Number(number).toFixed(precision);
+
+const toNumber = item => Number(item);
