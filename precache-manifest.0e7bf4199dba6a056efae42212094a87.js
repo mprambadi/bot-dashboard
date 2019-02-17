@@ -4,15 +4,15 @@ self.__precacheManifest = [
     "url": "/bot-dashboard/static/js/runtime~main.9a288a77.js"
   },
   {
-    "revision": "f7b6a87916dbf1174c5d",
-    "url": "/bot-dashboard/static/js/main.f7b6a879.chunk.js"
+    "revision": "6b6e8d1a0f6e6a2e6cac",
+    "url": "/bot-dashboard/static/js/main.6b6e8d1a.chunk.js"
   },
   {
     "revision": "4c65d35b6cf772093dbc",
     "url": "/bot-dashboard/static/js/1.4c65d35b.chunk.js"
   },
   {
-    "revision": "f7b6a87916dbf1174c5d",
+    "revision": "6b6e8d1a0f6e6a2e6cac",
     "url": "/bot-dashboard/static/css/main.ba498641.chunk.css"
   },
   {
@@ -20,7 +20,7 @@ self.__precacheManifest = [
     "url": "/bot-dashboard/static/css/1.3cd753e2.chunk.css"
   },
   {
-    "revision": "0d43cd159bc65af5246f341bb28dc306",
+    "revision": "40160fa7cf62d391e50ae440c6525b43",
     "url": "/bot-dashboard/index.html"
   }
 ];
