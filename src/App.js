@@ -1,12 +1,12 @@
 import React from "react";
 import "./App.css";
-import {  View, Text, Picker, TextInput } from "react-native";
-import { List} from "react-virtualized";
+import { View, Text, Picker, TextInput } from "react-native";
+import { List, AutoSizer } from "react-virtualized";
 import Axios from "axios";
-
+import styles from "./List.css";
 
 const api = Axios.create({
-	baseURL: "https://telegrafme.herokuapp.com/indicator/"
+	baseURL: "http://localhost:3000/indicator/"
 });
 
 const service = {
@@ -27,8 +27,24 @@ class App extends React.PureComponent {
 	};
 	componentDidMount() {
 		this.fetchAllTickers();
+		this.interval = setInterval(async () => {
+			const { data } = await service.fetchOhlcv();
+			this.setState(state => ({
+				market: state.market.map(item => {
+
+          console.log(data.find(res => res.id === item.id))
+					return {
+            bg:item.bg,
+						...data.find(res => res.id === item.id)
+					};
+				})
+			}));
+		}, 60000);
 	}
 
+	componentWillUnmount() {
+		clearInterval(this.interval);
+	}
 	fetchLocalData = () => {
 		this.localData = JSON.parse(localStorage.getItem("ohlcvData"));
 	};
@@ -38,7 +54,7 @@ class App extends React.PureComponent {
 		const addExtraData = data.map(item => ({
 			...item,
 			bg: "white"
-    }));
+		}));
 		this.setState({ market: addExtraData }, () => {
 			this.getSocket();
 		});
@@ -98,7 +114,8 @@ class App extends React.PureComponent {
 			rsi: { daily, fourly },
 			market: { precision },
 			bg,
-			fib: { s3, s2, s1, p, r3, r2, r1 }
+			fib: { s3, s2, s1, p, r3, r2, r1 },
+			ma: { maFourly }
 		} = filteredData[index];
 
 		return (
@@ -116,26 +133,22 @@ class App extends React.PureComponent {
 				key={key}
 			>
 				<TextCenter text={id} />
-				{
-					<TextCenter
-						text={fixedNumberBy(ticker.last, precision.price)}
-						backgroundColor={bg}
-						bold
-					/>
-				}
-				{
-					<TextCenter
-						text={Number(ticker.percentage).toFixed(2)}
-						percentage
-						backgroundColor={
-							ticker.percentage > 0
-								? "#42f474"
-								: ticker.percentage < 0
-								? "#f44141"
-								: "white"
-						}
-					/>
-				}
+				<TextCenter
+					text={fixedNumberBy(ticker.last, precision.price)}
+					backgroundColor={bg}
+					bold
+				/>
+				<TextCenter
+					text={Number(ticker.percentage).toFixed(2)}
+					percentage
+					backgroundColor={
+						ticker.percentage > 0
+							? "#42f474"
+							: ticker.percentage < 0
+							? "#f44141"
+							: "white"
+					}
+				/>
 
 				<TextCenter
 					text={fixedNumberBy(fourly.lastRSI, 2)}
@@ -145,7 +158,16 @@ class App extends React.PureComponent {
 					text={fixedNumberBy(daily.lastRSI, 2)}
 					backgroundColor={daily.lastRSI < 25 ? "#42f474" : "white"}
 				/>
-				<TextCenter text={s1.percentage} percentage />
+				<TextCenter
+					text={s1.percentage}
+					percentage
+					backgroundColor={s1.percentage < 1 ? "#42f474" : "white"}
+				/>
+				<TextCenter
+					text={maFourly.percentage}
+					percentage
+					backgroundColor={ticker.last > maFourly.price ? "#42f474" : "#f44141"}
+				/>
 
 				<TextCenter text={fixedNumberBy(r3.price, precision.price)} />
 				<TextCenter text={fixedNumberBy(r2.price, precision.price)} />
@@ -203,9 +225,7 @@ class App extends React.PureComponent {
 
 					<View
 						style={{ flexDirection: "row", alignItems: "center", width: "20%" }}
-					>
-						<Text>Pagination : </Text>
-					</View>
+					/>
 					<Text>Search :</Text>
 					<TextInput
 						onChange={({ target: { value } }) =>
@@ -213,22 +233,26 @@ class App extends React.PureComponent {
 						}
 						style={{
 							borderColor: "black",
-							width: 100,
+							width: 150,
 							height: 25,
 							borderWidth: 1
 						}}
 					/>
 				</View>
 				<HeaderIndicator />
-
-				<List
-					style={{ marginTop: 80 }}
-					rowCount={filteredData.length}
-					rowRenderer={this.renderIndicator}
-					width={window.innerWidth - 5}
-					height={window.innerHeight - 80}
-					rowHeight={35}
-				/>
+				<AutoSizer>
+					{({ width }) => (
+						<List
+							style={{ marginTop: 40 }}
+							rowCount={filteredData.length}
+							rowRenderer={this.renderIndicator}
+							width={width}
+							height={580}
+							overscanRowCount={10}
+							rowHeight={35}
+						/>
+					)}
+				</AutoSizer>
 			</View>
 		);
 	}
@@ -239,11 +263,8 @@ const HeaderIndicator = () => (
 		style={{
 			flexDirection: "row",
 			justifyContent: "space-between",
-			width: "99%",
 			alignItems: "center",
-			position: "fixed",
 			top: 40,
-			zIndex: 1,
 			borderColor: "black",
 			backgroundColor: "white",
 			borderWidth: 1
@@ -255,27 +276,21 @@ const HeaderIndicator = () => (
 		<TextCenter bold text="RSI 4H" />
 		<TextCenter bold text="RSI 1D" />
 		<TextCenter bold text="S1%" />
-		<View style={{ width: "100%" }}>
-			<View style={{ alignContent: "center" }}>
-				<Text> Pivot Fibonnaci Weekly</Text>
-			</View>
-			<View style={{ flexDirection: "row", width: "100%" }}>
-				<TextCenter bold text="R3" />
-				<TextCenter bold text="R2" />
-				<TextCenter bold text="R1" />
-				<TextCenter bold text="P" />
-				<TextCenter bold text="S1" />
-				<TextCenter bold text="S2" />
-				<TextCenter bold text="S3" />
-			</View>
-		</View>
+		<TextCenter bold text="MA90%" />
+		<TextCenter bold text="R3" />
+		<TextCenter bold text="R2" />
+		<TextCenter bold text="R1" />
+		<TextCenter bold text="P" />
+		<TextCenter bold text="S1" />
+		<TextCenter bold text="S2" />
+		<TextCenter bold text="S3" />
 	</View>
 );
 
 const TextCenter = ({ text, percentage, bold, backgroundColor }) => (
 	<View
 		style={{
-			width: "7.7%",
+			width: "6.0%",
 			alignItems: "center",
 			backgroundColor,
 			justifyContent: "center"
