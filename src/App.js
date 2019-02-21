@@ -1,6 +1,6 @@
 import React from "react";
 import "./App.css";
-import { View, Text, Picker, TextInput } from "react-native";
+import { View, Text, Picker, TextInput, TouchableOpacity } from "react-native";
 import { List, AutoSizer } from "react-virtualized";
 import Axios from "axios";
 
@@ -22,7 +22,8 @@ class App extends React.PureComponent {
 		market: [],
 		chunk: [],
 		base: "BTC",
-		search: ""
+		search: "",
+		sort: false
 	};
 	componentDidMount() {
 		this.fetchAllTickers();
@@ -30,10 +31,8 @@ class App extends React.PureComponent {
 			const { data } = await service.fetchOhlcv();
 			this.setState(state => ({
 				market: state.market.map(item => {
-
-          console.log(data.find(res => res.id === item.id))
 					return {
-            bg:item.bg,
+						bg: item.bg,
 						...data.find(res => res.id === item.id)
 					};
 				})
@@ -102,7 +101,7 @@ class App extends React.PureComponent {
 
 		const filteredData = filterBase.filter(
 			item =>
-				[item.id, item.fib.s1.toString()]
+				[item.id, item.fib.s1.percentage]
 					.join("")
 					.indexOf(this.state.search.toUpperCase()) !== -1
 		);
@@ -178,6 +177,22 @@ class App extends React.PureComponent {
 			</View>
 		);
 	};
+
+	orderBy = () => {
+		this.setState(state => {
+			return {
+				sort: !state.sort,
+				market: state.sort
+					? state.market.sort(
+							(a, b) => a.ma.maFourly.percentage - b.ma.maFourly.percentage
+					  )
+					: state.market.sort(
+							(a, b) => b.ma.maFourly.percentage - a.ma.maFourly.percentage
+					  )
+			};
+		});
+	};
+
 	render() {
 		const filterBase = this.state.market.filter(
 			item => item.base === this.state.base
@@ -185,7 +200,7 @@ class App extends React.PureComponent {
 
 		const filteredData = filterBase.filter(
 			item =>
-				[item.id, item.fib.s1.toString()]
+				[item.id, item.fib.s1.percentage]
 					.join("")
 					.indexOf(this.state.search.toUpperCase()) !== -1
 		);
@@ -238,7 +253,7 @@ class App extends React.PureComponent {
 						}}
 					/>
 				</View>
-				<HeaderIndicator />
+				<HeaderIndicator orderBy={this.orderBy} />
 				<AutoSizer>
 					{({ width }) => (
 						<List
@@ -257,7 +272,7 @@ class App extends React.PureComponent {
 	}
 }
 
-const HeaderIndicator = () => (
+const HeaderIndicator = ({ orderBy }) => (
 	<View
 		style={{
 			flexDirection: "row",
@@ -275,8 +290,14 @@ const HeaderIndicator = () => (
 		<TextCenter bold text="RSI 4H" />
 		<TextCenter bold text="RSI 1D" />
 		<TextCenter bold text="S1%" />
-		<TextCenter bold text="MA90%" />
+		<TouchableOpacity
+			onPress={() => orderBy()}
+			style={{ alignItems: "center" }}
+		>
+			<TextCenter bold text="MA90%" />
+		</TouchableOpacity>
 		<TextCenter bold text="R3" />
+
 		<TextCenter bold text="R2" />
 		<TextCenter bold text="R1" />
 		<TextCenter bold text="P" />
