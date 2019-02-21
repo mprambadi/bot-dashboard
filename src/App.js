@@ -3,10 +3,9 @@ import "./App.css";
 import { View, Text, Picker, TextInput } from "react-native";
 import { List, AutoSizer } from "react-virtualized";
 import Axios from "axios";
-import styles from "./List.css";
 
 const api = Axios.create({
-	baseURL: "http://localhost:3000/indicator/"
+	baseURL: "https://telegrafme.herokuapp.com/indicator/"
 });
 
 const service = {
