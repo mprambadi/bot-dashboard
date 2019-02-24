@@ -152,6 +152,8 @@ class App extends React.PureComponent {
 				? market.filter(
 						item => item.ma.maFourly.twentyFiveSeven.cross.up === true
 				  )
+				: page === "macd"
+				? market.filter(item => item.macd.cross.up === true)
 				: favorite.map(item => market.find(filter => filter.id === item));
 
 		const {
@@ -163,8 +165,9 @@ class App extends React.PureComponent {
 			toggle,
 			fib: { s3, s2, s1, p, r3, r2, r1 },
 			ma: {
-				maFourly: { ninety, seven, twentyFive, twentyFiveSeven }
-			}
+				maFourly: { ninety, twentyFiveSeven }
+			},
+			macd
 		} = favorites[index];
 
 		return (
@@ -269,6 +272,17 @@ class App extends React.PureComponent {
 									: "white"
 							}
 						/>
+						<TextCenter
+							text={macd.percentage.last}
+							percentage
+							backgroundColor={
+								macd.cross.up
+									? "#42f474"
+									: macd.cross.down
+									? "#f44141"
+									: "white"
+							}
+						/>
 
 						<TextCenter text={fixedNumberBy(r3.price, precision.price)} />
 						<TextCenter text={fixedNumberBy(r2.price, precision.price)} />
@@ -337,6 +351,8 @@ class App extends React.PureComponent {
 				? market.filter(
 						item => item.ma.maFourly.twentyFiveSeven.cross.up === true
 				  )
+				: page === "macd"
+				? market.filter(item => item.macd.cross.up === true)
 				: favorite.map(item => market.find(filter => filter.id === item));
 
 		return (
@@ -393,6 +409,10 @@ class App extends React.PureComponent {
 						onPress={() => this.setState({ page: "ma725" })}
 					/>
 					<TextCenter
+						text={"macd up"}
+						onPress={() => this.setState({ page: "macd" })}
+					/>
+					<TextCenter
 						text={`Favorite ${favorite.length}`}
 						onPress={() => this.setState({ page: "favorite" })}
 					/>
@@ -443,6 +463,7 @@ const HeaderIndicator = ({ orderBy }) => (
 		<TextCenter bold text="S1%" />
 		<TextCenter bold text="MA90%" onPress={() => orderBy()} />
 		<TextCenter bold text="(MA7/25)%" />
+		<TextCenter bold text="MACD%" />
 		<TextCenter bold text="R3" />
 		<TextCenter bold text="R2" />
 		<TextCenter bold text="R1" />
