@@ -148,6 +148,10 @@ class App extends React.PureComponent {
 		const favorites =
 			page === "dashboard"
 				? filteredData
+				: page === "ma725"
+				? market.filter(
+						item => item.ma.maFourly.twentyFiveSeven.cross.up === true
+				  )
 				: favorite.map(item => market.find(filter => filter.id === item));
 
 		const {
@@ -158,7 +162,9 @@ class App extends React.PureComponent {
 			bg,
 			toggle,
 			fib: { s3, s2, s1, p, r3, r2, r1 },
-			ma: { maFourly : {ninety, seven, twentyFive, twentyFiveSeven} }
+			ma: {
+				maFourly: { ninety, seven, twentyFive, twentyFiveSeven }
+			}
 		} = favorites[index];
 
 		return (
@@ -253,10 +259,14 @@ class App extends React.PureComponent {
 							}
 						/>
 						<TextCenter
-							text={twentyFiveSeven.percentage}
+							text={twentyFiveSeven.percentage.last}
 							percentage
 							backgroundColor={
-								seven.price > twentyFive.price ? "#42f474" : "#f44141"
+								twentyFiveSeven.cross.up
+									? "#42f474"
+									: twentyFiveSeven.cross.down
+									? "#f44141"
+									: "white"
 							}
 						/>
 
@@ -271,7 +281,13 @@ class App extends React.PureComponent {
 
 					{toggle && (
 						<View style={{ flex: 1, minHeight: 40, backgroundColor: "blue" }}>
-							<View style={{ flexDirection: "row", flex:1, justifyContent:'space-around' }}>
+							<View
+								style={{
+									flexDirection: "row",
+									flex: 1,
+									justifyContent: "space-around"
+								}}
+							>
 								<Text>Ok 1</Text>
 								<Text>Ok 2</Text>
 								<Text>Ok 3</Text>
@@ -280,7 +296,13 @@ class App extends React.PureComponent {
 								<Text>Ok 6</Text>
 								<Text>Ok 7</Text>
 							</View>
-							<View style={{ flexDirection: "row", flex:1, justifyContent:'space-around' }}>
+							<View
+								style={{
+									flexDirection: "row",
+									flex: 1,
+									justifyContent: "space-around"
+								}}
+							>
 								<Text>Ok 1</Text>
 								<Text>Ok 2</Text>
 								<Text>Ok 3</Text>
@@ -311,6 +333,10 @@ class App extends React.PureComponent {
 		const favorites =
 			page === "dashboard"
 				? filteredData
+				: page === "ma725"
+				? market.filter(
+						item => item.ma.maFourly.twentyFiveSeven.cross.up === true
+				  )
 				: favorite.map(item => market.find(filter => filter.id === item));
 
 		return (
@@ -363,6 +389,10 @@ class App extends React.PureComponent {
 					</View>
 
 					<TextCenter
+						text={"ma 7/25 up"}
+						onPress={() => this.setState({ page: "ma725" })}
+					/>
+					<TextCenter
 						text={`Favorite ${favorite.length}`}
 						onPress={() => this.setState({ page: "favorite" })}
 					/>
@@ -412,7 +442,7 @@ const HeaderIndicator = ({ orderBy }) => (
 		<TextCenter bold text="RSI 1D" />
 		<TextCenter bold text="S1%" />
 		<TextCenter bold text="MA90%" onPress={() => orderBy()} />
-		<TextCenter bold text="(MA7/25)%"/>
+		<TextCenter bold text="(MA7/25)%" />
 		<TextCenter bold text="R3" />
 		<TextCenter bold text="R2" />
 		<TextCenter bold text="R1" />
