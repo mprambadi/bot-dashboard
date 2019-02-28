@@ -283,18 +283,10 @@ class App extends React.PureComponent {
 									: "white"
 							}
 						/>
-
-						<TextCenter text={fixedNumberBy(r3.price, precision.price)} />
-						<TextCenter text={fixedNumberBy(r2.price, precision.price)} />
-						<TextCenter text={fixedNumberBy(r1.price, precision.price)} />
-						<TextCenter text={fixedNumberBy(p.price, precision.price)} />
-						<TextCenter text={fixedNumberBy(s1.price, precision.price)} />
-						<TextCenter text={fixedNumberBy(s2.price, precision.price)} />
-						<TextCenter text={fixedNumberBy(s3.price, precision.price)} />
 					</View>
 
 					{toggle && (
-						<View style={{ flex: 1, minHeight: 40, backgroundColor: "blue" }}>
+						<View style={{ flex: 1, minHeight: 40 }}>
 							<View
 								style={{
 									flexDirection: "row",
@@ -302,13 +294,13 @@ class App extends React.PureComponent {
 									justifyContent: "space-around"
 								}}
 							>
-								<Text>Ok 1</Text>
-								<Text>Ok 2</Text>
-								<Text>Ok 3</Text>
-								<Text>Ok 4</Text>
-								<Text>Ok 5</Text>
-								<Text>Ok 6</Text>
-								<Text>Ok 7</Text>
+								<TextCenter bold text="R3" />
+								<TextCenter bold text="R2" />
+								<TextCenter bold text="R1" />
+								<TextCenter bold text="P" />
+								<TextCenter bold text="S1" />
+								<TextCenter bold text="S2" />
+								<TextCenter bold text="S3" />
 							</View>
 							<View
 								style={{
@@ -317,13 +309,13 @@ class App extends React.PureComponent {
 									justifyContent: "space-around"
 								}}
 							>
-								<Text>Ok 1</Text>
-								<Text>Ok 2</Text>
-								<Text>Ok 3</Text>
-								<Text>Ok 4</Text>
-								<Text>Ok 5</Text>
-								<Text>Ok 6</Text>
-								<Text>Ok 7</Text>
+								<TextCenter text={fixedNumberBy(r3.price, precision.price)} />
+								<TextCenter text={fixedNumberBy(r2.price, precision.price)} />
+								<TextCenter text={fixedNumberBy(r1.price, precision.price)} />
+								<TextCenter text={fixedNumberBy(p.price, precision.price)} />
+								<TextCenter text={fixedNumberBy(s1.price, precision.price)} />
+								<TextCenter text={fixedNumberBy(s2.price, precision.price)} />
+								<TextCenter text={fixedNumberBy(s3.price, precision.price)} />
 							</View>
 						</View>
 					)}
@@ -464,13 +456,6 @@ const HeaderIndicator = ({ orderBy }) => (
 		<TextCenter bold text="MA90%" onPress={() => orderBy()} />
 		<TextCenter bold text="(MA7/25)%" />
 		<TextCenter bold text="MACD%" />
-		<TextCenter bold text="R3" />
-		<TextCenter bold text="R2" />
-		<TextCenter bold text="R1" />
-		<TextCenter bold text="P" />
-		<TextCenter bold text="S1" />
-		<TextCenter bold text="S2" />
-		<TextCenter bold text="S3" />
 	</View>
 );
 
