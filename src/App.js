@@ -95,7 +95,8 @@ class App extends React.PureComponent {
 						...item,
 						ticker: {
 							...item.ticker,
-							last: !!last ? Number(last.c) : Number(item.ticker.last),
+              last: !!last ? Number(last.c) : Number(item.ticker.last),
+              quoteVolume: !!last ? last.q: item.ticker.quoteVolume,
 							percentage: !!last
 								? percentage({ lastPrice: last.c, openPrice: last.o })
 								: Number(item.ticker.percentage)
@@ -166,8 +167,6 @@ class App extends React.PureComponent {
 				? market.filter(item => item.macd.macdFourly.cross.up === true)
 				: favorite.map(item => market.find(filter => filter.id === item));
 
-		console.log(favorites);
-
 		const {
 			rsi: { daily, fourly, secondHourly, fifteen, thirty, hourly },
 			fib: { s3, s2, s1, p, r3, r2, r1 }
@@ -212,19 +211,22 @@ class App extends React.PureComponent {
 
 				<div className="table-responsive">
 					<table className="table table-hover mt-2" cellPadding="10">
-						<tr className=" text-center m-2">
-							<th>Pair</th>
-							<th>Last Price</th>
-							<th>24h Chg</th>
-							<th>S1%</th>
-							<th>MA90%</th>
-							<th>MA7/25</th>
-							<th>MACD15m</th>
-							<th>MACD30m</th>
-							<th>MACD1h</th>
-							<th>MACD2h</th>
-							<th>MACD4h</th>
-						</tr>
+						<thead>
+							<tr className=" text-center m-2">
+								<th>Pair</th>
+								<th>Last Price</th>
+								<th>24h Chg</th>
+								<th>Volume</th>
+								<th>S1%</th>
+								<th>MA90%</th>
+								<th>MA7/25</th>
+								<th>MACD15m</th>
+								<th>MACD30m</th>
+								<th>MACD1h</th>
+								<th>MACD2h</th>
+								<th>MACD4h</th>
+							</tr>
+						</thead>
 						<tbody>
 							{favorites.map(item => {
 								const {
@@ -284,12 +286,13 @@ class App extends React.PureComponent {
 													: "white"
 											}
 										>
-											{Number(ticker.percentage).toFixed(2)}
+											{Number(ticker.percentage).toFixed(2)} %
 										</td>
+										<td>{fixedNumberBy(ticker.quoteVolume, 2)}</td>
 										<td className={fib.s1.percentage < 0 && "bg-success"}>
-											{fib.s1.percentage}
+											{fib.s1.percentage} %
 										</td>
-										<td>{ninety.percentage} </td>
+										<td>{ninety.percentage} % </td>
 										<td
 											className={
 												twentyFiveSeven.cross.up
@@ -377,92 +380,100 @@ class App extends React.PureComponent {
 				>
 					<div className="table-responsive">
 						<table className="table">
-							<tr>
-								<td>R3</td>
-								<td>R2</td>
-								<td>R1</td>
-								<td>P</td>
-								<td>S1</td>
-								<td>S2</td>
-								<td>S3</td>
-							</tr>
-							<tr>
-								<td>
-									{fixedNumberBy(
-										r3.price,
-										this.state.toggle.market.precision.price
-									)}
-								</td>
-								<td>
-									{fixedNumberBy(
-										r2.price,
-										this.state.toggle.market.precision.price
-									)}
-								</td>
-								<td>
-									{fixedNumberBy(
-										r1.price,
-										this.state.toggle.market.precision.price
-									)}
-								</td>
-								<td>
-									{fixedNumberBy(
-										p.price,
-										this.state.toggle.market.precision.price
-									)}
-								</td>
-								<td>
-									{fixedNumberBy(
-										s1.price,
-										this.state.toggle.market.precision.price
-									)}
-								</td>
-								<td>
-									{fixedNumberBy(
-										s2.price,
-										this.state.toggle.market.precision.price
-									)}
-								</td>
-								<td>
-									{fixedNumberBy(
-										s3.price,
-										this.state.toggle.market.precision.price
-									)}
-								</td>
-							</tr>
+							<thead>
+								<tr>
+									<td>R3</td>
+									<td>R2</td>
+									<td>R1</td>
+									<td>P</td>
+									<td>S1</td>
+									<td>S2</td>
+									<td>S3</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td>
+										{fixedNumberBy(
+											r3.price,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td>
+										{fixedNumberBy(
+											r2.price,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td>
+										{fixedNumberBy(
+											r1.price,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td>
+										{fixedNumberBy(
+											p.price,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td>
+										{fixedNumberBy(
+											s1.price,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td>
+										{fixedNumberBy(
+											s2.price,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td>
+										{fixedNumberBy(
+											s3.price,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+								</tr>
+							</tbody>
 						</table>
 					</div>
 
 					<div className="table-responsive">
 						<table className="table">
-							<tr>
-								<td>RSI 15m</td>
-								<td>RSI 30m</td>
-								<td>RSI 1h</td>
-								<td>RSI 2h</td>
-								<td>RSI 4h</td>
-								<td>RSI 1d</td>
-							</tr>
-							<tr>
-								<td className={fifteen.lastRSI < 25 && "bg-success"}>
-									{fixedNumberBy(fifteen.lastRSI, 2)}
-								</td>
-								<td className={thirty.lastRSI < 25 && "bg-success"}>
-									{fixedNumberBy(thirty.lastRSI, 2)}
-								</td>
-								<td className={hourly.lastRSI < 25 && "bg-success"}>
-									{fixedNumberBy(hourly.lastRSI, 2)}
-								</td>
-								<td className={secondHourly.lastRSI < 25 && "bg-success"}>
-									{fixedNumberBy(secondHourly.lastRSI, 2)}
-								</td>
-								<td className={fourly.lastRSI < 25 && "bg-success"}>
-									{fixedNumberBy(fourly.lastRSI, 2)}
-								</td>
-								<td className={daily.lastRSI < 25 && "bg-success"}>
-									{fixedNumberBy(daily.lastRSI, 2)}
-								</td>
-							</tr>
+							<thead>
+								<tr>
+									<td>RSI 15m</td>
+									<td>RSI 30m</td>
+									<td>RSI 1h</td>
+									<td>RSI 2h</td>
+									<td>RSI 4h</td>
+									<td>RSI 1d</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td className={fifteen.lastRSI < 25 && "bg-success"}>
+										{fixedNumberBy(fifteen.lastRSI, 2)}
+									</td>
+									<td className={thirty.lastRSI < 25 && "bg-success"}>
+										{fixedNumberBy(thirty.lastRSI, 2)}
+									</td>
+									<td className={hourly.lastRSI < 25 && "bg-success"}>
+										{fixedNumberBy(hourly.lastRSI, 2)}
+									</td>
+									<td className={secondHourly.lastRSI < 25 && "bg-success"}>
+										{fixedNumberBy(secondHourly.lastRSI, 2)}
+									</td>
+									<td className={fourly.lastRSI < 25 && "bg-success"}>
+										{fixedNumberBy(fourly.lastRSI, 2)}
+									</td>
+									<td className={daily.lastRSI < 25 && "bg-success"}>
+										{fixedNumberBy(daily.lastRSI, 2)}
+									</td>
+								</tr>
+							</tbody>
 						</table>
 					</div>
 				</ModalExample>
