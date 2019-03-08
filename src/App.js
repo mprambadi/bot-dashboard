@@ -111,7 +111,7 @@ class App extends React.PureComponent {
 						},
 						bg: last
 							? Number(last.c) > Number(item.ticker && item.ticker.last)
-								? "bg-gradient-success"
+								? "bg-success"
 								: Number(last.c) < Number(item.ticker && item.ticker.last)
 								? "bg-danger"
 								: "white"
