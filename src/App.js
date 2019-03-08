@@ -1,13 +1,9 @@
 import React from "react";
-import "./App.css";
-import { View, Text, Picker, TextInput, TouchableOpacity } from "react-native";
-import {
-	List,
-	AutoSizer,
-	CellMeasurer,
-	CellMeasurerCache
-} from "react-virtualized";
 import Axios from "axios";
+import classNames from "classnames";
+import NavbarHeader from "./component/Navbar";
+import ModalExample from "./component/Modal";
+import { NavItem, NavLink } from "reactstrap";
 
 const api = Axios.create({
 	baseURL: "https://telegrafme.herokuapp.com/indicator"
@@ -32,21 +28,32 @@ class App extends React.PureComponent {
 		search: "",
 		sort: false,
 		favorite: [],
+		toggle: {
+			rsi: {
+				daily: "",
+				fourly: "",
+				secondHourly: "",
+				fifteen: "",
+				thirty: "",
+				hourly: ""
+			},
+			fib: { s3: "", s2: "", s1: "", p: "", r3: "", r2: "", r1: "" },
+			market: { precision: "" },
+			id: ""
+		},
+		modal: false,
 		page: "dashboard"
 	};
-
-	_cache = new CellMeasurerCache({ defaultHeight: 50, fixedWidth: true });
-	_mostRecentWidth = 0;
 
 	componentDidMount() {
 		this.fetchAllTickers();
 		this.interval = setInterval(async () => {
 			const { data } = await service.fetchOhlcv();
 			this.setState(state => ({
-				market: state.market.map(item => {
+				market: state.market.map((item, index, arr) => {
 					return {
 						bg: item.bg,
-						toggle: item.toggle,
+						togle: arr[0],
 						...data.find(res => res.id === item.id)
 					};
 				})
@@ -66,12 +73,17 @@ class App extends React.PureComponent {
 		const { data } = await service.fetchOhlcv();
 		const addExtraData = data.map(item => ({
 			...item,
-			bg: "white",
-			toggle: false
+			bg: "white"
 		}));
 		this.setState({ market: addExtraData }, () => {
 			this.getSocket();
 		});
+	};
+
+	togglePressed = () => {
+		this.setState(prevState => ({
+			modal: !prevState.modal
+		}));
 	};
 
 	getSocket() {
@@ -99,9 +111,9 @@ class App extends React.PureComponent {
 						},
 						bg: last
 							? Number(last.c) > Number(item.ticker && item.ticker.last)
-								? "#42f474"
+								? "bg-gradient-success"
 								: Number(last.c) < Number(item.ticker && item.ticker.last)
-								? "#f44141"
+								? "bg-danger"
 								: "white"
 							: item.bg
 					};
@@ -133,202 +145,9 @@ class App extends React.PureComponent {
 		this.setState({ favorite: data ? data : [] });
 	};
 
-	renderIndicator = ({ index, key, style, parent }) => {
-		const { market, favorite, page, search, base } = this.state;
-
-		const filterBase = market.filter(item => item.base === base);
-
-		const filteredData = filterBase.filter(
-			item =>
-				[item.id, item.fib.s1.percentage]
-					.join("")
-					.indexOf(search.toUpperCase()) !== -1
-		);
-
-		const favorites =
-			page === "dashboard"
-				? filteredData
-				: page === "ma725"
-				? market.filter(
-						item => item.ma.maFourly.twentyFiveSeven.cross.up === true
-				  )
-				: page === "macd"
-				? market.filter(item => item.macd.cross.up === true)
-				: favorite.map(item => market.find(filter => filter.id === item));
-
-		const {
-			id,
-			ticker,
-			rsi: { daily, fourly },
-			market: { precision },
-			bg,
-			toggle,
-			fib: { s3, s2, s1, p, r3, r2, r1 },
-			ma: {
-				maFourly: { ninety, twentyFiveSeven }
-			},
-			macd
-		} = favorites[index];
-
-		return (
-			<CellMeasurer
-				cache={this._cache}
-				columnIndex={0}
-				key={key}
-				parent={parent}
-				rowIndex={index}
-				width={this._mostRecentWidth}
-			>
-				<View
-					style={[
-						{
-							borderBottomColor: "black",
-							borderWidth: 1,
-							minHeight: 60
-						},
-						style
-					]}
-					key={key}
-				>
-					<View
-						style={{
-							flexDirection: "row",
-							justifyContent: "space-between",
-							flex: 1
-						}}
-					>
-						<TextCenter
-							text={id}
-							onPress={() =>
-								this.setState(
-									state => ({
-										favorite:
-											page === "dashboard"
-												? [...state.favorite, id]
-												: state.favorite.filter(item => item !== id)
-									}),
-									() => {
-										this.saveFavorite();
-									}
-								)
-							}
-						/>
-
-						<TextCenter
-							text={fixedNumberBy(ticker.last, precision.price)}
-							backgroundColor={bg}
-							bold
-							onPress={() =>
-								this.setState(state => ({
-									market: state.market.map(item =>
-										item.id === id
-											? { ...item, toggle: !item.toggle }
-											: { ...item }
-									)
-								}))
-							}
-						/>
-
-						<TextCenter
-							text={Number(ticker.percentage).toFixed(2)}
-							percentage
-							backgroundColor={
-								ticker.percentage > 0
-									? "#42f474"
-									: ticker.percentage < 0
-									? "#f44141"
-									: "white"
-							}
-						/>
-
-						<TextCenter
-							text={fixedNumberBy(fourly.lastRSI, 2)}
-							backgroundColor={fourly.lastRSI < 25 ? "#42f474" : "white"}
-						/>
-						<TextCenter
-							text={fixedNumberBy(daily.lastRSI, 2)}
-							backgroundColor={daily.lastRSI < 25 ? "#42f474" : "white"}
-						/>
-						<TextCenter
-							text={s1.percentage}
-							percentage
-							backgroundColor={s1.percentage < 1 ? "#42f474" : "white"}
-						/>
-						<TextCenter
-							text={ninety.percentage}
-							percentage
-							backgroundColor={
-								ticker.last > ninety.price ? "#42f474" : "#f44141"
-							}
-						/>
-						<TextCenter
-							text={twentyFiveSeven.percentage.last}
-							percentage
-							backgroundColor={
-								twentyFiveSeven.cross.up
-									? "#42f474"
-									: twentyFiveSeven.cross.down
-									? "#f44141"
-									: "white"
-							}
-						/>
-						<TextCenter
-							text={macd.percentage.last}
-							percentage
-							backgroundColor={
-								macd.cross.up
-									? "#42f474"
-									: macd.cross.down
-									? "#f44141"
-									: "white"
-							}
-						/>
-					</View>
-
-					{toggle && (
-						<View style={{ flex: 1, minHeight: 40 }}>
-							<View
-								style={{
-									flexDirection: "row",
-									flex: 1,
-									justifyContent: "space-around"
-								}}
-							>
-								<TextCenter bold text="R3" />
-								<TextCenter bold text="R2" />
-								<TextCenter bold text="R1" />
-								<TextCenter bold text="P" />
-								<TextCenter bold text="S1" />
-								<TextCenter bold text="S2" />
-								<TextCenter bold text="S3" />
-							</View>
-							<View
-								style={{
-									flexDirection: "row",
-									flex: 1,
-									justifyContent: "space-around"
-								}}
-							>
-								<TextCenter text={fixedNumberBy(r3.price, precision.price)} />
-								<TextCenter text={fixedNumberBy(r2.price, precision.price)} />
-								<TextCenter text={fixedNumberBy(r1.price, precision.price)} />
-								<TextCenter text={fixedNumberBy(p.price, precision.price)} />
-								<TextCenter text={fixedNumberBy(s1.price, precision.price)} />
-								<TextCenter text={fixedNumberBy(s2.price, precision.price)} />
-								<TextCenter text={fixedNumberBy(s3.price, precision.price)} />
-							</View>
-						</View>
-					)}
-				</View>
-			</CellMeasurer>
-		);
-	};
-
 	render() {
 		const { market, favorite, page, search, base } = this.state;
-
 		const filterBase = market.filter(item => item.base === base);
-
 		const filteredData = filterBase.filter(
 			item =>
 				[item.id, item.fib.s1.percentage]
@@ -344,136 +163,314 @@ class App extends React.PureComponent {
 						item => item.ma.maFourly.twentyFiveSeven.cross.up === true
 				  )
 				: page === "macd"
-				? market.filter(item => item.macd.cross.up === true)
+				? market.filter(item => item.macd.macdFourly.cross.up === true)
 				: favorite.map(item => market.find(filter => filter.id === item));
 
-		return (
-			<View>
-				<View
-					style={{
-						width: "100%",
-						backgroundColor: "white",
-						borderColor: "black",
-						position: "fixed",
-						left: 10,
-						top: 0,
-						paddingTop: 10,
-						zIndex: 1,
-						flexDirection: "row",
-						alignItems: "center",
-						justifyContent: "space-around"
-					}}
-				>
-					<View style={{ flexDirection: "row" }}>
-						<Text>Base Pair : </Text>
-						<Picker
-							selectedValue={base}
-							style={{
-								height: 30,
-								width: 100
-							}}
-							onValueChange={itemValue => this.setState({ base: itemValue })}
-						>
-							<Picker.Item label="BTC" value="BTC" />
-							<Picker.Item label="USDT" value="USDT" />
-							<Picker.Item label="TUSD" value="TUSD" />
-							<Picker.Item label="PAX" value="PAX" />
-							<Picker.Item label="ETH" value="ETH" />
-						</Picker>
-					</View>
-					<View style={{ flexDirection: "row", alignItems: "center" }}>
-						<Text>Search :</Text>
-						<TextInput
-							onChange={({ target: { value } }) =>
-								this.setState({ search: value })
-							}
-							style={{
-								borderColor: "black",
-								width: 150,
-								height: 25,
-								borderWidth: 1
-							}}
-						/>
-					</View>
+		console.log(favorites);
 
-					<TextCenter
-						text={"ma 7/25 up"}
-						onPress={() => this.setState({ page: "ma725" })}
-					/>
-					<TextCenter
-						text={"macd up"}
-						onPress={() => this.setState({ page: "macd" })}
-					/>
-					<TextCenter
-						text={`Favorite ${favorite.length}`}
-						onPress={() => this.setState({ page: "favorite" })}
-					/>
-					<TextCenter
-						text="Dashboard"
-						onPress={() => this.setState({ page: "dashboard" })}
-					/>
-				</View>
-				<HeaderIndicator orderBy={this.orderBy} />
-				<AutoSizer>
-					{({ width }) => {
-						return (
-							<List
-								deferredMeasurementCache={this._cache}
-								style={{ marginTop: 40 }}
-								rowCount={favorites.length}
-								rowRenderer={this.renderIndicator}
-								width={width}
-								height={600}
-								overscanRowCount={1}
-								rowHeight={this._cache.rowHeight}
+		const {
+			rsi: { daily, fourly, secondHourly, fifteen, thirty, hourly },
+			fib: { s3, s2, s1, p, r3, r2, r1 }
+		} = this.state.toggle;
+		return (
+			<div>
+				<NavbarHeader>
+					<NavItem>
+						<NavLink onClick={() => this.setState({ page: "dashboard" })}>
+							Dashboard <span className="sr-only">(current)</span>
+						</NavLink>
+					</NavItem>
+					<NavItem>
+						<NavLink onClick={() => this.setState({ page: "ma725" })}>
+							MA 7/25 UP
+						</NavLink>
+					</NavItem>
+					<NavItem>
+						<NavLink onClick={() => this.setState({ page: "macd" })}>
+							MACD 4h Up
+						</NavLink>
+					</NavItem>
+					<NavItem>
+						<NavLink onClick={() => this.setState({ page: "favorite" })}>
+							Favorite {this.state.favorite.length}
+						</NavLink>
+					</NavItem>
+					<NavItem>
+						<form className="form-inline my-2 my-lg-0">
+							<input
+								className="form-control mr-sm-2"
+								type="search"
+								placeholder="Search"
+								aria-label="Search"
+								onChange={({ target: { value } }) =>
+									this.setState({ search: value })
+								}
 							/>
-						);
-					}}
-				</AutoSizer>
-			</View>
+						</form>
+					</NavItem>
+				</NavbarHeader>
+
+				<div className="table-responsive">
+					<table className="table table-hover mt-2" cellPadding="10">
+						<tr className=" text-center m-2">
+							<th>Pair</th>
+							<th>Last Price</th>
+							<th>24h Chg</th>
+							<th>S1%</th>
+							<th>MA90%</th>
+							<th>MA7/25</th>
+							<th>MACD15m</th>
+							<th>MACD30m</th>
+							<th>MACD1h</th>
+							<th>MACD2h</th>
+							<th>MACD4h</th>
+						</tr>
+						<tbody>
+							{favorites.map(item => {
+								const {
+									id,
+									ticker,
+									market: { precision },
+									bg,
+									fib,
+									ma: {
+										maFourly: { ninety, twentyFiveSeven }
+									},
+									macd: {
+										macdFifteen,
+										macdThirty,
+										macdHourly,
+										macdSecondHourly,
+										macdFourly
+									}
+								} = item;
+								return (
+									<tr key={id} className=" text-center">
+										<td
+											onClick={() =>
+												this.setState(
+													state => ({
+														favorite:
+															page === "dashboard"
+																? [...state.favorite, id]
+																: state.favorite.filter(item => item !== id)
+													}),
+													() => {
+														this.saveFavorite();
+													}
+												)
+											}
+										>
+											{id}
+										</td>
+										<td
+											className={classNames(bg, "m-5")}
+											onClick={() =>
+												this.setState(state => ({
+													...state,
+													toggle: item,
+													modal: true
+												}))
+											}
+										>
+											{fixedNumberBy(ticker.last, precision.price)}
+										</td>
+										<td
+											className={
+												ticker.percentage > 0
+													? "bg-success"
+													: ticker.percentage < 0
+													? "bg-danger"
+													: "white"
+											}
+										>
+											{Number(ticker.percentage).toFixed(2)}
+										</td>
+										<td className={fib.s1.percentage < 0 && "bg-success"}>
+											{fib.s1.percentage}
+										</td>
+										<td>{ninety.percentage} </td>
+										<td
+											className={
+												twentyFiveSeven.cross.up
+													? "bg-success"
+													: twentyFiveSeven.cross.down
+													? "bg-danger"
+													: "white"
+											}
+										>
+											{twentyFiveSeven.percentage.last}
+										</td>
+										<td
+											className={
+												macdFifteen.cross.up
+													? "bg-success"
+													: macdFifteen.cross.down
+													? "bg-danger"
+													: "white"
+											}
+										>
+											{macdFifteen.percentage.last}
+										</td>
+										<td
+											className={
+												macdThirty.cross.up
+													? "bg-success"
+													: macdThirty.cross.down
+													? "bg-danger"
+													: "white"
+											}
+										>
+											{macdThirty.percentage.last}
+										</td>
+										<td
+											className={
+												macdHourly.cross.up
+													? "bg-success"
+													: macdHourly.cross.down
+													? "bg-danger"
+													: "white"
+											}
+										>
+											{macdHourly.percentage.last}
+										</td>
+										<td
+											className={
+												macdSecondHourly.cross.up
+													? "bg-success"
+													: macdSecondHourly.cross.down
+													? "bg-danger"
+													: "white"
+											}
+										>
+											{macdSecondHourly.percentage.last}
+										</td>
+										<td
+											className={
+												macdFourly.cross.up
+													? "bg-success"
+													: macdFourly.cross.down
+													? "bg-danger"
+													: "white"
+											}
+										>
+											{macdFourly.percentage.last}
+										</td>
+									</tr>
+								);
+							})}
+						</tbody>
+					</table>
+				</div>
+				{!!this.state.market.length || (
+					<div className="d-flex justify-content-center">
+						<div className="spinner-border" role="status">
+							<span className="sr-only">Loading...</span>
+						</div>
+					</div>
+				)}
+
+				<ModalExample
+					modal={this.state.modal}
+					toggle={this.togglePressed}
+					item={this.state.toggle}
+				>
+					<div className="table-responsive">
+						<table className="table">
+							<tr>
+								<td>R3</td>
+								<td>R2</td>
+								<td>R1</td>
+								<td>P</td>
+								<td>S1</td>
+								<td>S2</td>
+								<td>S3</td>
+							</tr>
+							<tr>
+								<td>
+									{fixedNumberBy(
+										r3.price,
+										this.state.toggle.market.precision.price
+									)}
+								</td>
+								<td>
+									{fixedNumberBy(
+										r2.price,
+										this.state.toggle.market.precision.price
+									)}
+								</td>
+								<td>
+									{fixedNumberBy(
+										r1.price,
+										this.state.toggle.market.precision.price
+									)}
+								</td>
+								<td>
+									{fixedNumberBy(
+										p.price,
+										this.state.toggle.market.precision.price
+									)}
+								</td>
+								<td>
+									{fixedNumberBy(
+										s1.price,
+										this.state.toggle.market.precision.price
+									)}
+								</td>
+								<td>
+									{fixedNumberBy(
+										s2.price,
+										this.state.toggle.market.precision.price
+									)}
+								</td>
+								<td>
+									{fixedNumberBy(
+										s3.price,
+										this.state.toggle.market.precision.price
+									)}
+								</td>
+							</tr>
+						</table>
+					</div>
+
+					<div className="table-responsive">
+						<table className="table">
+							<tr>
+								<td>RSI 15m</td>
+								<td>RSI 30m</td>
+								<td>RSI 1h</td>
+								<td>RSI 2h</td>
+								<td>RSI 4h</td>
+								<td>RSI 1d</td>
+							</tr>
+							<tr>
+								<td className={fifteen.lastRSI < 25 && "bg-success"}>
+									{fixedNumberBy(fifteen.lastRSI, 2)}
+								</td>
+								<td className={thirty.lastRSI < 25 && "bg-success"}>
+									{fixedNumberBy(thirty.lastRSI, 2)}
+								</td>
+								<td className={hourly.lastRSI < 25 && "bg-success"}>
+									{fixedNumberBy(hourly.lastRSI, 2)}
+								</td>
+								<td className={secondHourly.lastRSI < 25 && "bg-success"}>
+									{fixedNumberBy(secondHourly.lastRSI, 2)}
+								</td>
+								<td className={fourly.lastRSI < 25 && "bg-success"}>
+									{fixedNumberBy(fourly.lastRSI, 2)}
+								</td>
+								<td className={daily.lastRSI < 25 && "bg-success"}>
+									{fixedNumberBy(daily.lastRSI, 2)}
+								</td>
+							</tr>
+						</table>
+					</div>
+				</ModalExample>
+			</div>
 		);
 	}
 }
 
-const HeaderIndicator = ({ orderBy }) => (
-	<View
-		style={{
-			flexDirection: "row",
-			justifyContent: "space-between",
-			alignItems: "center",
-			top: 40,
-			borderColor: "black",
-			backgroundColor: "white",
-			borderWidth: 1
-		}}
-	>
-		<TextCenter bold text="Pair" />
-		<TextCenter bold text="Last Price" />
-		<TextCenter bold text="24h Chg%" />
-		<TextCenter bold text="RSI 4H" />
-		<TextCenter bold text="RSI 1D" />
-		<TextCenter bold text="S1%" />
-		<TextCenter bold text="MA90%" onPress={() => orderBy()} />
-		<TextCenter bold text="(MA7/25)%" />
-		<TextCenter bold text="MACD%" />
-	</View>
-);
-
-const TextCenter = ({ text, percentage, bold, backgroundColor, onPress }) => (
-	<TouchableOpacity
-		style={{
-			width: "6.0%",
-			alignItems: "center",
-			backgroundColor,
-			justifyContent: "center"
-		}}
-		onPress={onPress}
-	>
-		<Text style={{ fontWeight: bold ? "bold" : "normal" }}>
-			{text} {percentage ? "%" : ""}
-		</Text>
-	</TouchableOpacity>
-);
 export default App;
 
 const percentage = ({ lastPrice, openPrice }) => {
