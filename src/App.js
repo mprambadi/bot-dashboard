@@ -35,7 +35,8 @@ class App extends React.PureComponent {
 				secondHourly: "",
 				fifteen: "",
 				thirty: "",
-				hourly: ""
+        hourly: "",
+        five: ""
 			},
 			fib: { s3: "", s2: "", s1: "", p: "", r3: "", r2: "", r1: "" },
 			market: { precision: "" },
@@ -168,7 +169,7 @@ class App extends React.PureComponent {
 				: favorite.map(item => market.find(filter => filter.id === item));
 
 		const {
-			rsi: { daily, fourly, secondHourly, fifteen, thirty, hourly },
+			rsi: { daily, fourly, secondHourly, fifteen, thirty, hourly, five },
 			fib: { s3, s2, s1, p, r3, r2, r1 }
 		} = this.state.toggle;
 		return (
@@ -220,11 +221,13 @@ class App extends React.PureComponent {
 								<th>S1%</th>
 								<th>MA90%</th>
 								<th>MA7/25</th>
+								<th>MACD5m</th>
 								<th>MACD15m</th>
 								<th>MACD30m</th>
 								<th>MACD1h</th>
 								<th>MACD2h</th>
 								<th>MACD4h</th>
+								<th>MACD1d</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -239,11 +242,13 @@ class App extends React.PureComponent {
 										maFourly: { ninety, twentyFiveSeven }
 									},
 									macd: {
+                    macdFive,
 										macdFifteen,
 										macdThirty,
 										macdHourly,
 										macdSecondHourly,
-										macdFourly
+                    macdFourly,
+                    macdDaily
 									}
 								} = item;
 								return (
@@ -290,9 +295,9 @@ class App extends React.PureComponent {
 										</td>
 										<td>{fixedNumberBy(ticker.quoteVolume, 2)}</td>
 										<td className={fib.s1.percentage < 0 && "bg-success"}>
-											{fib.s1.percentage} %
+											{fib.s1.percentage}%
 										</td>
-										<td>{ninety.percentage} % </td>
+										<td>{ninety.percentage}%</td>
 										<td
 											className={
 												twentyFiveSeven.cross.up
@@ -303,6 +308,17 @@ class App extends React.PureComponent {
 											}
 										>
 											{twentyFiveSeven.percentage.last}
+										</td>
+										<td
+											className={
+												macdFive.cross.up
+													? "bg-success"
+													: macdFive.cross.down
+													? "bg-danger"
+													: "white"
+											}
+										>
+											{macdFive.percentage.last}
 										</td>
 										<td
 											className={
@@ -358,6 +374,17 @@ class App extends React.PureComponent {
 											}
 										>
 											{macdFourly.percentage.last}
+										</td>
+										<td
+											className={
+												macdDaily.cross.up
+													? "bg-success"
+													: macdDaily.cross.down
+													? "bg-danger"
+													: "white"
+											}
+										>
+											{macdDaily.percentage.last}
 										</td>
 									</tr>
 								);
@@ -444,6 +471,7 @@ class App extends React.PureComponent {
 						<table className="table">
 							<thead>
 								<tr>
+									<td>RSI 5m</td>
 									<td>RSI 15m</td>
 									<td>RSI 30m</td>
 									<td>RSI 1h</td>
@@ -454,6 +482,9 @@ class App extends React.PureComponent {
 							</thead>
 							<tbody>
 								<tr>
+									<td className={five.lastRSI < 25 && "bg-success"}>
+										{fixedNumberBy(five.lastRSI, 2)}
+									</td>
 									<td className={fifteen.lastRSI < 25 && "bg-success"}>
 										{fixedNumberBy(fifteen.lastRSI, 2)}
 									</td>
