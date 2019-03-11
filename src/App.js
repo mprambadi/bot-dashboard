@@ -29,18 +29,114 @@ class App extends React.PureComponent {
 		sort: false,
 		favorite: [],
 		toggle: {
+			ticker: {
+				last: ""
+			},
 			rsi: {
 				daily: "",
 				fourly: "",
 				secondHourly: "",
 				fifteen: "",
 				thirty: "",
-        hourly: "",
-        five: ""
+				hourly: "",
+				five: ""
 			},
 			fib: { s3: "", s2: "", s1: "", p: "", r3: "", r2: "", r1: "" },
 			market: { precision: "" },
-			id: ""
+			id: "",
+			ma: {
+				maDaily: {
+					ninety: {
+						price: "",
+						cross: {
+							up: "",
+							down: ""
+						},
+						condition: {
+							bearish: "",
+							bullish: ""
+						}
+					}
+				},
+				maFourly: {
+					ninety: {
+						price: "",
+						cross: {
+							up: "",
+							down: ""
+						},
+						condition: {
+							bearish: "",
+							bullish: ""
+						}
+					}
+				},
+				maSecondHourly: {
+					ninety: {
+						price: "",
+						cross: {
+							up: "",
+							down: ""
+						},
+						condition: {
+							bearish: "",
+							bullish: ""
+						}
+					}
+				},
+				maHourly: {
+					ninety: {
+						price: "",
+						cross: {
+							up: "",
+							down: ""
+						},
+						condition: {
+							bearish: "",
+							bullish: ""
+						}
+					}
+				},
+				maThirty: {
+					ninety: {
+						price: "",
+						cross: {
+							up: "",
+							down: ""
+						},
+						condition: {
+							bearish: "",
+							bullish: ""
+						}
+					}
+				},
+				maFifteen: {
+					ninety: {
+						price: "",
+						cross: {
+							up: "",
+							down: ""
+						},
+						condition: {
+							bearish: "",
+							bullish: ""
+						}
+					}
+				},
+				maFive: {
+					ninety: {
+						price: "",
+						cross: {
+							up: "",
+							down: ""
+						},
+						condition: {
+							bearish: "",
+							bullish: ""
+						}
+					}
+				}
+			}
 		},
 		modal: false,
 		page: "dashboard"
@@ -96,8 +192,8 @@ class App extends React.PureComponent {
 						...item,
 						ticker: {
 							...item.ticker,
-              last: !!last ? Number(last.c) : Number(item.ticker.last),
-              quoteVolume: !!last ? last.q: item.ticker.quoteVolume,
+							last: !!last ? Number(last.c) : Number(item.ticker.last),
+							quoteVolume: !!last ? last.q : item.ticker.quoteVolume,
 							percentage: !!last
 								? percentage({ lastPrice: last.c, openPrice: last.o })
 								: Number(item.ticker.percentage)
@@ -147,6 +243,10 @@ class App extends React.PureComponent {
 		this.setState({ favorite: data ? data : [] });
 	};
 
+	setPage = value => {
+		this.setState({ page: value });
+	};
+
 	render() {
 		const { market, favorite, page, search, base } = this.state;
 		const filterBase = market.filter(item => item.base === base);
@@ -157,27 +257,83 @@ class App extends React.PureComponent {
 					.indexOf(search.toUpperCase()) !== -1
 		);
 
-		const favorites =
-			page === "dashboard"
-				? filteredData
-				: page === "ma725"
-				? market.filter(
-						item => item.ma.maFourly.twentyFiveSeven.cross.up === true
-				  )
-				: page === "macd"
-				? market.filter(item => item.macd.macdFourly.cross.up === true)
-				: favorite.map(item => market.find(filter => filter.id === item));
+		let favorites = filteredData;
+
+		switch (page) {
+			case "usdt":
+				favorites = market.filter(item => item.base === "USDT");
+				break;
+			case "ma725":
+				favorites = market.filter(
+					item => item.ma.maFourly.twentyFiveSeven.cross.up === true
+				);
+				break;
+			case "ma90":
+				favorites = market.filter(
+					item => item.ma.maFourly.ninety.cross.up === true
+				);
+				break;
+			case "macd1d":
+				favorites = market.filter(
+					item => item.macd.macdDaily.cross.up === true
+				);
+				break;
+			case "macd4h":
+				favorites = market.filter(
+					item => item.macd.macdFourly.cross.up === true
+				);
+				break;
+			case "macd2h":
+				favorites = market.filter(
+					item => item.macd.macdSecondHourly.cross.up === true
+				);
+				break;
+			case "macd1h":
+				favorites = market.filter(
+					item => item.macd.macdHourly.cross.up === true
+				);
+				break;
+			case "macd30":
+				favorites = market.filter(
+					item => item.macd.macdThirty.cross.up === true
+				);
+				break;
+			case "macd15":
+				favorites = market.filter(
+					item => item.macd.macdFifteen.cross.up === true
+				);
+				break;
+			case "macd5":
+				favorites = market.filter(item => item.macd.macdFive.cross.up === true);
+				break;
+			case "favorite":
+				favorites = favorite.map(item =>
+					market.find(filter => filter.id === item)
+				);
+				break;
+			default:
+				favorites = filteredData;
+				break;
+		}
 
 		const {
 			rsi: { daily, fourly, secondHourly, fifteen, thirty, hourly, five },
-			fib: { s3, s2, s1, p, r3, r2, r1 }
+			fib: { s3, s2, s1, p, r3, r2, r1 },
+			ma
 		} = this.state.toggle;
 		return (
 			<div>
 				<NavbarHeader>
 					<NavItem>
-						<NavLink onClick={() => this.setState({ page: "dashboard" })}>
+						<NavLink
+							onClick={() => this.setState({ page: "dashboard", base: "BTC" })}
+						>
 							Dashboard <span className="sr-only">(current)</span>
+						</NavLink>
+					</NavItem>
+					<NavItem>
+						<NavLink onClick={() => this.setState({ page: "usdt" })}>
+							USDT <span className="sr-only">(current)</span>
 						</NavLink>
 					</NavItem>
 					<NavItem>
@@ -186,7 +342,7 @@ class App extends React.PureComponent {
 						</NavLink>
 					</NavItem>
 					<NavItem>
-						<NavLink onClick={() => this.setState({ page: "macd" })}>
+						<NavLink onClick={() => this.setState({ page: "macd4h" })}>
 							MACD 4h Up
 						</NavLink>
 					</NavItem>
@@ -214,20 +370,20 @@ class App extends React.PureComponent {
 					<table className="table table-hover mt-2" cellPadding="10">
 						<thead>
 							<tr className=" text-center m-2">
-								<th>Pair</th>
+								<th onClick={() => this.setPage("dashboard")}>Pair</th>
 								<th>Last Price</th>
 								<th>24h Chg</th>
 								<th>Volume</th>
 								<th>S1%</th>
-								<th>MA90%</th>
-								<th>MA7/25</th>
-								<th>MACD5m</th>
-								<th>MACD15m</th>
-								<th>MACD30m</th>
-								<th>MACD1h</th>
-								<th>MACD2h</th>
-								<th>MACD4h</th>
-								<th>MACD1d</th>
+								<th onClick={() => this.setPage("ma90")}>MA90%</th>
+								<th onClick={() => this.setPage("ma725")}>MA7/25</th>
+								<th onClick={() => this.setPage("macd5")}>MACD5m</th>
+								<th onClick={() => this.setPage("macd15")}>MACD15m</th>
+								<th onClick={() => this.setPage("macd30")}>MACD30m</th>
+								<th onClick={() => this.setPage("macd1h")}>MACD1h</th>
+								<th onClick={() => this.setPage("macd2h")}>MACD2h</th>
+								<th onClick={() => this.setPage("macd4h")}>MACD4h</th>
+								<th onClick={() => this.setPage("macd1d")}>MACD1d</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -242,13 +398,13 @@ class App extends React.PureComponent {
 										maFourly: { ninety, twentyFiveSeven }
 									},
 									macd: {
-                    macdFive,
+										macdFive,
 										macdFifteen,
 										macdThirty,
 										macdHourly,
 										macdSecondHourly,
-                    macdFourly,
-                    macdDaily
+										macdFourly,
+										macdDaily
 									}
 								} = item;
 								return (
@@ -297,7 +453,17 @@ class App extends React.PureComponent {
 										<td className={fib.s1.percentage < 0 && "bg-success"}>
 											{fib.s1.percentage}%
 										</td>
-										<td>{ninety.percentage}%</td>
+										<td
+											className={
+												ninety.cross.up
+													? "bg-success"
+													: ninety.cross.down
+													? "bg-danger"
+													: "white"
+											}
+										>
+											{ninety.percentage}%{" "}
+										</td>
 										<td
 											className={
 												twentyFiveSeven.cross.up
@@ -502,6 +668,111 @@ class App extends React.PureComponent {
 									</td>
 									<td className={daily.lastRSI < 25 && "bg-success"}>
 										{fixedNumberBy(daily.lastRSI, 2)}
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<div className="table-responsive">
+						<table className="table">
+							<thead>
+								<tr>
+									<td>MA90 5m</td>
+									<td>MA90 15m</td>
+									<td>MA90 30m</td>
+									<td>MA90 1h</td>
+									<td>MA90 2h</td>
+									<td>MA90 4h</td>
+									<td>MA90 1d</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td
+										className={
+											ma.maFive.ninety.price < this.state.toggle.ticker.last
+												? "bg-success"
+												: "bg-danger"
+										}
+									>
+										{fixedNumberBy(
+											ma.maFive.ninety.price,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td
+										className={
+											ma.maFifteen.ninety.price < this.state.toggle.ticker.last
+												? "bg-success"
+												: "bg-danger"
+										}
+									>
+										{fixedNumberBy(
+											ma.maFifteen.ninety.price,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td
+										className={
+											ma.maThirty.ninety.price < this.state.toggle.ticker.last
+												? "bg-success"
+												: "bg-danger"
+										}
+									>
+										{fixedNumberBy(
+											ma.maThirty.ninety.price,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td
+										className={
+											ma.maHourly.ninety.price < this.state.toggle.ticker.last
+												? "bg-success"
+												: "bg-danger"
+										}
+									>
+										{fixedNumberBy(
+											ma.maHourly.ninety.price,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td
+										className={
+											ma.maSecondHourly.ninety.price <
+											this.state.toggle.ticker.last
+												? "bg-success"
+												: "bg-danger"
+										}
+									>
+										{fixedNumberBy(
+											ma.maSecondHourly.ninety.price,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td
+										className={
+											ma.maFourly.ninety.price < this.state.toggle.ticker.last
+												? "bg-success"
+												: "bg-danger"
+										}
+									>
+										{fixedNumberBy(
+											ma.maFourly.ninety.price,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td
+										className={
+											ma.maDaily.ninety.price < this.state.toggle.ticker.last
+												? "bg-success"
+												: "bg-danger"
+										}
+									>
+										{fixedNumberBy(
+											ma.maDaily.ninety.price,
+											this.state.toggle.market.precision.price
+										)}
 									</td>
 								</tr>
 							</tbody>
