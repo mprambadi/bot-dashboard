@@ -203,7 +203,7 @@ class App extends React.PureComponent {
 							s1: {
 								...item.fib.s1,
 								percentage: !!last
-									? percentage({ lastPrice: last.c, openPrice: item.data.s1 })
+									? percentage({ lastPrice: last.c, openPrice: item.fib.s1.price })
 									: item.fib.s1.percentage
 							}
 						},
@@ -262,11 +262,6 @@ class App extends React.PureComponent {
 		switch (page) {
 			case "usdt":
 				favorites = market.filter(item => item.base === "USDT");
-				break;
-			case "ma725":
-				favorites = market.filter(
-					item => item.ma.maFourly.twentyFiveSeven.cross.up === true
-				);
 				break;
 			case "ma90":
 				favorites = market.filter(
@@ -337,11 +332,6 @@ class App extends React.PureComponent {
 						</NavLink>
 					</NavItem>
 					<NavItem>
-						<NavLink onClick={() => this.setState({ page: "ma725" })}>
-							MA 7/25 UP
-						</NavLink>
-					</NavItem>
-					<NavItem>
 						<NavLink onClick={() => this.setState({ page: "macd4h" })}>
 							MACD 4h Up
 						</NavLink>
@@ -376,7 +366,6 @@ class App extends React.PureComponent {
 								<th>Volume</th>
 								<th>S1%</th>
 								<th onClick={() => this.setPage("ma90")}>MA90%</th>
-								<th onClick={() => this.setPage("ma725")}>MA7/25</th>
 								<th onClick={() => this.setPage("macd5")}>MACD5m</th>
 								<th onClick={() => this.setPage("macd15")}>MACD15m</th>
 								<th onClick={() => this.setPage("macd30")}>MACD30m</th>
@@ -395,7 +384,7 @@ class App extends React.PureComponent {
 									bg,
 									fib,
 									ma: {
-										maFourly: { ninety, twentyFiveSeven }
+										maFourly: { ninety }
 									},
 									macd: {
 										macdFive,
@@ -463,17 +452,6 @@ class App extends React.PureComponent {
 											}
 										>
 											{ninety.percentage}%{" "}
-										</td>
-										<td
-											className={
-												twentyFiveSeven.cross.up
-													? "bg-success"
-													: twentyFiveSeven.cross.down
-													? "bg-danger"
-													: "white"
-											}
-										>
-											{twentyFiveSeven.percentage.last}
 										</td>
 										<td
 											className={
