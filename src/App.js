@@ -44,6 +44,50 @@ class App extends React.PureComponent {
 			fib: { s3: "", s2: "", s1: "", p: "", r3: "", r2: "", r1: "" },
 			market: { precision: "" },
 			id: "",
+			psar: {
+				psarFive: {
+					lastClose: "",
+					prevCLose: "",
+					condition: "",
+					percentage: ""
+				},
+				psarFifteen: {
+					lastClose: "",
+					prevCLose: "",
+					condition: "",
+					percentage: ""
+				},
+				psarThirty: {
+					lastClose: "",
+					prevCLose: "",
+					condition: "",
+					percentage: ""
+				},
+				psarHourly: {
+					lastClose: "",
+					prevCLose: "",
+					condition: "",
+					percentage: ""
+				},
+				psarSecondHourly: {
+					lastClose: "",
+					prevCLose: "",
+					condition: "",
+					percentage: ""
+				},
+				psarFourly: {
+					lastClose: "",
+					prevCLose: "",
+					condition: "",
+					percentage: ""
+				},
+				psarDaily: {
+					lastClose: "",
+					prevCLose: "",
+					condition: "",
+					percentage: ""
+				}
+			},
 			ma: {
 				maDaily: {
 					ninety: {
@@ -203,7 +247,10 @@ class App extends React.PureComponent {
 							s1: {
 								...item.fib.s1,
 								percentage: !!last
-									? percentage({ lastPrice: last.c, openPrice: item.fib.s1.price })
+									? percentage({
+											lastPrice: last.c,
+											openPrice: item.fib.s1.price
+									  })
 									: item.fib.s1.percentage
 							}
 						},
@@ -314,6 +361,15 @@ class App extends React.PureComponent {
 		const {
 			rsi: { daily, fourly, secondHourly, fifteen, thirty, hourly, five },
 			fib: { s3, s2, s1, p, r3, r2, r1 },
+			psar: {
+				psarDaily,
+				psarFifteen,
+				psarFive,
+				psarFourly,
+				psarHourly,
+				psarSecondHourly,
+				psarThirty
+			},
 			ma
 		} = this.state.toggle;
 		return (
@@ -749,6 +805,110 @@ class App extends React.PureComponent {
 									>
 										{fixedNumberBy(
 											ma.maDaily.ninety.price,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
+					<div className="table-responsive">
+						<table className="table">
+							<thead>
+								<tr>
+									<td>PSAR 5m</td>
+									<td>PSAR 15m</td>
+									<td>PSAR 30m</td>
+									<td>PSAR 1h</td>
+									<td>PSAR 2h</td>
+									<td>PSAR 4h</td>
+									<td>PSAR 1d</td>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td
+										className={
+											psarFive.lastClose < this.state.toggle.ticker.last
+												? "bg-success"
+												: "bg-danger"
+										}
+									>
+										{fixedNumberBy(
+											psarFive.lastClose,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td
+										className={
+											psarFifteen.lastClose < this.state.toggle.ticker.last
+												? "bg-success"
+												: "bg-danger"
+										}
+									>
+										{fixedNumberBy(
+											psarFifteen.lastClose,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td
+										className={
+											psarThirty.lastClose < this.state.toggle.ticker.last
+												? "bg-success"
+												: "bg-danger"
+										}
+									>
+										{fixedNumberBy(
+											psarThirty.lastClose,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td
+										className={
+											psarHourly.lastClose < this.state.toggle.ticker.last
+												? "bg-success"
+												: "bg-danger"
+										}
+									>
+										{fixedNumberBy(
+											psarHourly.lastClose,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td
+										className={
+											psarSecondHourly.lastClose < this.state.toggle.ticker.last
+												? "bg-success"
+												: "bg-danger"
+										}
+									>
+										{fixedNumberBy(
+											psarSecondHourly.lastClose,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td
+										className={
+											psarFourly.lastClose < this.state.toggle.ticker.last
+												? "bg-success"
+												: "bg-danger"
+										}
+									>
+										{fixedNumberBy(
+											psarFourly.lastClose,
+											this.state.toggle.market.precision.price
+										)}
+									</td>
+									<td
+										className={
+											psarDaily.lastClose < this.state.toggle.ticker.last
+												? "bg-success"
+												: "bg-danger"
+										}
+									>
+										{fixedNumberBy(
+											psarDaily.lastClose,
 											this.state.toggle.market.precision.price
 										)}
 									</td>
