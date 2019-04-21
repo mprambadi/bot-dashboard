@@ -6,7 +6,7 @@ import ModalExample from "./component/Modal";
 import { NavItem, NavLink } from "reactstrap";
 
 const api = Axios.create({
-	baseURL: "https://telegrafme.herokuapp.com/indicator"
+	baseURL: "https://api-bot-dashboard.herokuapp.com/indicator"
 });
 
 const service = {
