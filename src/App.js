@@ -459,7 +459,7 @@ class App extends React.PureComponent {
 												this.setState(
 													state => ({
 														favorite:
-															page === "dashboard"
+															page !== "favorite"
 																? [...state.favorite, id]
 																: state.favorite.filter(item => item !== id)
 													}),
